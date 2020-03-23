@@ -10,14 +10,56 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.helloWorld"
+    "onCommand:workingSets.create",
+    "onView:workingSets"
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "working-sets",
+          "title": "Working Sets",
+          "icon": "assets/briefcase.svg"
+        }
+      ]
+    },
+    "views": {
+      "working-sets": [
+        {
+          "id": "workingSets",
+          "name": "Working Sets"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "workingSets.create",
+          "when": "view == workingSets",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "workingSets.delete",
+          "when": "view == workingSets && viewItem == workingSet",
+          "group": "inline"
+        }
+      ]
+    },
     "commands": [
       {
-        "command": "extension.helloWorld",
-        "title": "Hello World"
+        "command": "workingSets.create",
+        "title": "Create New",
+        "category": "Working Sets",
+        "icon": "$(add)"
+      },
+      {
+        "command": "workingSets.delete",
+        "title": "Delete",
+        "category": "Working Sets",
+        "icon": "$(trash)"
       }
     ]
   },
