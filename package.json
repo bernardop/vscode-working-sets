@@ -11,6 +11,7 @@
   ],
   "activationEvents": [
     "onCommand:workingSets.create",
+    "onCommand:workingSets.delete",
     "onView:workingSets"
   ],
   "main": "./out/extension.js",

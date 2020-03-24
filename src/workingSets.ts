@@ -10,6 +10,10 @@ export class WorkingSetsProvider
 
   private workspaceWorkingSets: Record<string, string[]> = {}
 
+  private get workspaceWorkingSetsNames(): string[] {
+    return Object.keys(this.workspaceWorkingSets)
+  }
+
   constructor(private readonly context: vscode.ExtensionContext) {
     const storedWorkingSets:
       | Record<string, string[]>
@@ -36,7 +40,7 @@ export class WorkingSetsProvider
   }
 
   getChildren(): vscode.TreeItem[] {
-    return Object.keys(this.workspaceWorkingSets).map(
+    return this.workspaceWorkingSetsNames.map(
       (name) => new WorkingSet(name, vscode.TreeItemCollapsibleState.Collapsed)
     )
   }
@@ -60,19 +64,32 @@ export class WorkingSetsProvider
     }
   }
 
-  delete(workingSet: WorkingSet | undefined): void {
+  async delete(workingSet: WorkingSet | undefined): Promise<void> {
     if (workingSet) {
       const name = workingSet.label
-      delete this.workspaceWorkingSets[name]
-      vscode.window.showInformationMessage(
-        `"${name}" working set successfully deleted`
+      this.deleteWorkingSet(name)
+    } else if (this.workspaceWorkingSetsNames.length > 0) {
+      const name = await vscode.window.showQuickPick(
+        this.workspaceWorkingSetsNames
       )
-      this._onDidChangeTreeData.fire()
+      name && this.deleteWorkingSet(name)
+    } else {
+      vscode.window.showInformationMessage(
+        "There are no working sets to delete"
+      )
     }
   }
 
   private workingSetExists(name: string): boolean {
-    return Object.keys(this.workspaceWorkingSets).includes(name)
+    return this.workspaceWorkingSetsNames.includes(name)
+  }
+
+  private deleteWorkingSet(name: string) {
+    delete this.workspaceWorkingSets[name]
+    vscode.window.showInformationMessage(
+      `"${name}" working set successfully deleted`
+    )
+    this._onDidChangeTreeData.fire()
   }
 }
 
