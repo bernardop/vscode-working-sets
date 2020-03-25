@@ -12,6 +12,7 @@
   "activationEvents": [
     "onCommand:workingSets.create",
     "onCommand:workingSets.delete",
+    "onCommand:workingSets.addFile",
     "onView:workingSets"
   ],
   "main": "./out/extension.js",
@@ -43,6 +44,11 @@
       ],
       "view/item/context": [
         {
+          "command": "workingSets.addFile",
+          "when": "view == workingSets && viewItem == workingSet",
+          "group": "inline"
+        },
+        {
           "command": "workingSets.delete",
           "when": "view == workingSets && viewItem == workingSet",
           "group": "inline"
@@ -61,6 +67,12 @@
         "title": "Delete",
         "category": "Working Sets",
         "icon": "$(trash)"
+      },
+      {
+        "command": "workingSets.addFile",
+        "title": "Add Active File to Working Set",
+        "category": "Working Sets",
+        "icon": "$(file-add)"
       }
     ]
   },
