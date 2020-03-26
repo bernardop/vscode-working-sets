@@ -1,7 +1,20 @@
 import * as vscode from "vscode"
 import { basename } from "path"
+import { randomBytes } from "crypto"
+
+type WorkspaceWorkingSets = Map<string, WorkingSet>
+
+type StringifyableWorkspaceWorkingSetsItem = {
+  id: string
+  label: string
+  collapsibleState: number
+  filePaths: string[]
+}
+
+type StringifyableWorkspaceWorkingSets = StringifyableWorkspaceWorkingSetsItem[]
 
 type WorkingSetsNode = WorkingSet | WorkingSetItem
+
 export class WorkingSetsProvider
   implements vscode.TreeDataProvider<WorkingSetsNode> {
   private static readonly WORKING_SETS_KEY = "workingSets"
@@ -12,27 +25,39 @@ export class WorkingSetsProvider
   readonly onDidChangeTreeData: vscode.Event<WorkingSetsNode | undefined> = this
     ._onDidChangeTreeData.event
 
-  private workspaceWorkingSets: Record<string, string[]> = {}
+  private workspaceWorkingSets: WorkspaceWorkingSets = new Map()
 
-  private get workspaceWorkingSetsNames(): string[] {
-    return Object.keys(this.workspaceWorkingSets)
+  private get workingSetsNames(): string[] {
+    return this.workingSets.map(({ label }) => label)
+  }
+
+  private get workingSets(): WorkingSet[] {
+    const result = []
+
+    for (const workingSet of this.workspaceWorkingSets.values()) {
+      result.push(workingSet)
+    }
+
+    return result
   }
 
   constructor(private readonly context: vscode.ExtensionContext) {
     const storedWorkingSets:
-      | Record<string, string[]>
+      | StringifyableWorkspaceWorkingSets
       | undefined = context.workspaceState.get(
       WorkingSetsProvider.WORKING_SETS_KEY
     )
 
     if (storedWorkingSets) {
-      this.workspaceWorkingSets = storedWorkingSets
+      this.workspaceWorkingSets = this.getWorkspaceWorkingSetsFromJSONStringifyableObject(
+        storedWorkingSets
+      )
     } else {
       context.workspaceState
-        .update(WorkingSetsProvider.WORKING_SETS_KEY, {})
+        .update(WorkingSetsProvider.WORKING_SETS_KEY, [])
         .then(
           () => {
-            this.workspaceWorkingSets = {}
+            this.workspaceWorkingSets = new Map()
           },
           () => {
             vscode.window.showErrorMessage(
@@ -43,29 +68,22 @@ export class WorkingSetsProvider
     }
   }
 
-  getParent(element: WorkingSetsNode): vscode.ProviderResult<WorkingSetsNode> {
-    console.log("called getParent", element)
-    if (element instanceof WorkingSetItem) {
-      return element.workingSet
+  getParent(
+    workingSetsNode: WorkingSetsNode
+  ): vscode.ProviderResult<WorkingSetsNode> {
+    if (workingSetsNode instanceof WorkingSetItem) {
+      return this.workspaceWorkingSets.get(workingSetsNode.parentId)
     }
 
     return null
   }
 
-  getTreeItem(element: WorkingSetsNode): WorkingSetsNode {
-    return element
+  getTreeItem(workingSetsNode: WorkingSetsNode): WorkingSetsNode {
+    return workingSetsNode
   }
 
   getChildren(workingSet?: WorkingSet): WorkingSetsNode[] {
-    if (workingSet) {
-      return this.workspaceWorkingSets[workingSet.label].map(
-        (filePath) => new WorkingSetItem(vscode.Uri.file(filePath), workingSet)
-      )
-    }
-
-    return this.workspaceWorkingSetsNames.map(
-      (name) => new WorkingSet(name, vscode.TreeItemCollapsibleState.Collapsed)
-    )
+    return workingSet ? workingSet.getItems() : this.workingSets
   }
 
   async create() {
@@ -78,24 +96,30 @@ export class WorkingSetsProvider
           "A working set with that name already exists"
         )
       } else {
-        this.workspaceWorkingSets[name] = []
+        const uniqueId = randomBytes(16).toString("hex")
+        this.workspaceWorkingSets.set(
+          uniqueId,
+          new WorkingSet(
+            uniqueId,
+            name,
+            vscode.TreeItemCollapsibleState.Collapsed
+          )
+        )
         vscode.window.showInformationMessage(
           `"${name}" working set successfully created`
         )
-        await this.updateWorkspaceState()
-        this._onDidChangeTreeData.fire()
+        this.updateWorkspaceState()
       }
     }
   }
 
-  async delete(workingSet: WorkingSet | undefined): Promise<void> {
+  async delete(workingSet: WorkingSet | undefined) {
     if (workingSet) {
-      const name = workingSet.label
-      this.deleteWorkingSet(name)
-    } else if (this.workspaceWorkingSetsNames.length > 0) {
-      const name = await vscode.window.showQuickPick(
-        this.workspaceWorkingSetsNames
-      )
+      this.deleteWorkingSet(workingSet.label)
+    } else if (this.workingSets.length > 0) {
+      const name = await vscode.window.showQuickPick(this.workingSetsNames, {
+        placeHolder: "Which working set do you want to delete?",
+      })
       name && this.deleteWorkingSet(name)
     } else {
       vscode.window.showInformationMessage(
@@ -104,64 +128,209 @@ export class WorkingSetsProvider
     }
   }
 
-  addFile(workingSet: WorkingSet | undefined) {
+  async addFile(workingSet: WorkingSet | undefined) {
     if (workingSet) {
       this.addActiveEditorToWorkingSet(workingSet)
+    } else if (this.workingSets.length > 0) {
+      const name = await vscode.window.showQuickPick(this.workingSetsNames)
+      if (name) {
+        const selectedWorkingSet = this.workspaceWorkingSets.get(
+          this.getWorkingSetIDByName(name)
+        )
+        selectedWorkingSet &&
+          this.addActiveEditorToWorkingSet(selectedWorkingSet)
+      }
+    } else {
+      const action = await vscode.window.showInformationMessage(
+        "There are no working sets to add files to. Do you want to create one?",
+        "Yes",
+        "No"
+      )
+
+      if (action && action === "Yes") {
+        this.create()
+      }
     }
   }
 
-  private workingSetExists(name: string): boolean {
-    return this.workspaceWorkingSetsNames.includes(name)
+  async removeFile(workingSetItem: WorkingSetItem | undefined) {
+    if (workingSetItem) {
+      const workingSet = this.workspaceWorkingSets.get(workingSetItem.parentId)
+
+      workingSet?.removeItem(workingSetItem.resourceUri.fsPath)
+      this.updateWorkspaceState()
+    } else if (this.workingSets.length > 0) {
+      const workingSetName = await vscode.window.showQuickPick(
+        this.workingSetsNames,
+        {
+          placeHolder: "Which working set do you want to remove a file from?",
+        }
+      )
+
+      if (workingSetName) {
+        const workingSet = this.workspaceWorkingSets.get(
+          this.getWorkingSetIDByName(workingSetName)
+        )
+
+        if (workingSet) {
+          const filePath = await vscode.window.showQuickPick(
+            this.getWorkingSetItemsQuickPickItems(workingSet),
+            {
+              placeHolder: `Which file do you want to remove from "${workingSetName}"?`,
+              matchOnDetail: true,
+            }
+          )
+
+          if (filePath) {
+            workingSet.removeItem(filePath.detail)
+            this.updateWorkspaceState()
+          }
+        }
+      }
+    } else {
+      vscode.window.showInformationMessage(
+        "There are no working sets to remove files from"
+      )
+    }
   }
 
-  private async deleteWorkingSet(name: string) {
-    delete this.workspaceWorkingSets[name]
+  private refresh() {
+    this._onDidChangeTreeData.fire()
+  }
+
+  private getJSONStringifyableWorkspaceWorkingSets(): StringifyableWorkspaceWorkingSets {
+    const result = []
+
+    for (const workspaceWorkingSet of this.workspaceWorkingSets.entries()) {
+      const [id, workingSet] = workspaceWorkingSet
+      result.push({
+        id,
+        label: workingSet.label,
+        collapsibleState: workingSet.collapsibleState,
+        filePaths: workingSet
+          .getItems()
+          .map((workingSetItem) => workingSetItem.resourceUri.fsPath),
+      })
+    }
+
+    return result
+  }
+
+  private getWorkspaceWorkingSetsFromJSONStringifyableObject(
+    data: StringifyableWorkspaceWorkingSets
+  ): WorkspaceWorkingSets {
+    const result: WorkspaceWorkingSets = new Map()
+
+    for (const { id, label, collapsibleState, filePaths } of data) {
+      result.set(
+        id,
+        new WorkingSet(
+          id,
+          label,
+          collapsibleState,
+          filePaths.map(
+            (filePath) => new WorkingSetItem(vscode.Uri.file(filePath), id)
+          )
+        )
+      )
+    }
+
+    return result
+  }
+
+  private workingSetExists(name: string): boolean {
+    return this.workspaceWorkingSets.has(this.getWorkingSetIDByName(name))
+  }
+
+  private deleteWorkingSet(name: string) {
+    this.workspaceWorkingSets.delete(this.getWorkingSetIDByName(name))
     vscode.window.showInformationMessage(
       `"${name}" working set successfully deleted`
     )
-    await this.updateWorkspaceState()
-    this._onDidChangeTreeData.fire()
+    this.updateWorkspaceState()
   }
 
   private async addActiveEditorToWorkingSet(workingSet: WorkingSet) {
     const activeEditorDocument = vscode.window.activeTextEditor?.document
     const activeEditorFilePath = activeEditorDocument?.fileName
     if (activeEditorFilePath) {
-      // TODO: make sure we only add files that don't exist in the set already
-      this.workspaceWorkingSets[workingSet.label].push(activeEditorFilePath)
-      vscode.window.showInformationMessage(
-        `"${basename(activeEditorFilePath)}" added to ${workingSet.label}`
-      )
-      await this.updateWorkspaceState()
-      // TODO: Maybe find a way to expand working set if it's collapsed
-      vscode.commands.executeCommand("workingSets.expand", workingSet)
-      this._onDidChangeTreeData.fire()
+      this.workspaceWorkingSets
+        .get(workingSet.id)
+        ?.setItem(activeEditorFilePath)
+
+      await vscode.commands.executeCommand("workingSets.expand", workingSet)
+      this.updateWorkspaceState()
     }
   }
 
-  private updateWorkspaceState() {
-    return this.context.workspaceState.update(
+  private async updateWorkspaceState() {
+    await this.context.workspaceState.update(
       WorkingSetsProvider.WORKING_SETS_KEY,
-      this.workspaceWorkingSets
+      this.getJSONStringifyableWorkspaceWorkingSets()
     )
+    this.refresh()
+  }
+
+  private getWorkingSetIDByName(name: string): string {
+    return this.workingSets.find(({ label }) => name === label)?.id || ""
+  }
+
+  private getWorkingSetItemsQuickPickItems(workingSet: WorkingSet) {
+    return workingSet.getItems().map(({ label, resourceUri: { fsPath } }) => ({
+      label: label || basename(fsPath),
+      detail: fsPath,
+    }))
   }
 }
 
 class WorkingSet extends vscode.TreeItem {
   constructor(
-    public readonly label: string,
-    public collapsibleState: vscode.TreeItemCollapsibleState
+    public id: string,
+    public label: string,
+    public collapsibleState: vscode.TreeItemCollapsibleState,
+    private items: WorkingSetItem[] = []
   ) {
     super(label, collapsibleState)
   }
 
   contextValue = "workingSet"
+
+  getItems() {
+    return this.items
+  }
+
+  setItem(filePath: string) {
+    if (!this.hasItem(filePath)) {
+      this.items = [
+        ...this.items,
+        new WorkingSetItem(vscode.Uri.file(filePath), this.id),
+      ]
+      vscode.window.showInformationMessage(
+        `"${basename(filePath)}" added to ${this.label}`
+      )
+    }
+  }
+
+  removeItem(filePath: string) {
+    if (this.hasItem(filePath)) {
+      this.items = this.items.filter(
+        ({ resourceUri: { fsPath } }) => fsPath !== filePath
+      )
+      vscode.window.showInformationMessage(
+        `"${basename(filePath)}" removed from ${this.label}`
+      )
+    }
+  }
+
+  private hasItem(filePath: string) {
+    return this.items.some(({ resourceUri: { fsPath } }) => fsPath === filePath)
+  }
 }
 
 class WorkingSetItem extends vscode.TreeItem {
   constructor(
     public readonly resourceUri: vscode.Uri,
-    public readonly workingSet: WorkingSet
+    public readonly parentId: string
   ) {
     super(resourceUri, vscode.TreeItemCollapsibleState.None)
   }
@@ -171,6 +340,8 @@ class WorkingSetItem extends vscode.TreeItem {
     command: "vscode.open",
     arguments: [this.resourceUri, { preview: false }],
   }
+
+  contextValue = "workingSetItem"
 }
 
 export class WorkingSetsExplorer {
@@ -180,6 +351,7 @@ export class WorkingSetsExplorer {
     const workingSetsProvider = new WorkingSetsProvider(context)
     this.workingSetsViewer = vscode.window.createTreeView("workingSets", {
       treeDataProvider: workingSetsProvider,
+      showCollapseAll: true,
     })
 
     vscode.commands.registerCommand("workingSets.create", () =>
@@ -191,20 +363,16 @@ export class WorkingSetsExplorer {
     vscode.commands.registerCommand("workingSets.addFile", (workingSet) =>
       workingSetsProvider.addFile(workingSet)
     )
+    vscode.commands.registerCommand(
+      "workingSets.removeFile",
+      (workingSetItem) => workingSetsProvider.removeFile(workingSetItem)
+    )
     vscode.commands.registerCommand("workingSets.expand", (workingSet) =>
       this.reveal(workingSet)
     )
   }
 
   private reveal(workingSet: WorkingSet) {
-    console.log("workingSet label", workingSet.label)
-    this.workingSetsViewer.reveal(workingSet, { expand: true }).then(
-      () => {
-        console.log("success")
-      },
-      (error) => {
-        console.log(error)
-      }
-    )
+    this.workingSetsViewer.reveal(workingSet, { expand: true })
   }
 }

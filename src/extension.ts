@@ -7,20 +7,6 @@ import { WorkingSetsExplorer } from "./workingSets"
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  // const workingSetsProvider = new WorkingSetsProvider(context)
-  // vscode.window.registerTreeDataProvider("workingSets", workingSetsProvider)
-
-  // context.subscriptions.push(
-  //   vscode.commands.registerCommand("workingSets.create", () =>
-  //     workingSetsProvider.create()
-  //   ),
-  //   vscode.commands.registerCommand("workingSets.delete", (workingSet) =>
-  //     workingSetsProvider.delete(workingSet)
-  //   ),
-  //   vscode.commands.registerCommand("workingSets.addFile", (workingSet) =>
-  //     workingSetsProvider.addFile(workingSet)
-  //   )
-  // )
   new WorkingSetsExplorer(context)
 }
 

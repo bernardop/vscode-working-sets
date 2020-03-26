@@ -13,6 +13,7 @@
     "onCommand:workingSets.create",
     "onCommand:workingSets.delete",
     "onCommand:workingSets.addFile",
+    "onCommand:workingSets.removeFile",
     "onView:workingSets"
   ],
   "main": "./out/extension.js",
@@ -52,6 +53,11 @@
           "command": "workingSets.delete",
           "when": "view == workingSets && viewItem == workingSet",
           "group": "inline"
+        },
+        {
+          "command": "workingSets.removeFile",
+          "when": "view == workingSets && viewItem == workingSetItem",
+          "group": "inline"
         }
       ]
     },
@@ -73,6 +79,12 @@
         "title": "Add Active File to Working Set",
         "category": "Working Sets",
         "icon": "$(file-add)"
+      },
+      {
+        "command": "workingSets.removeFile",
+        "title": "Remove File from Working Set",
+        "category": "Working Sets",
+        "icon": "$(remove-close)"
       }
     ]
   },
