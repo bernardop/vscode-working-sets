@@ -81,7 +81,7 @@
       },
       {
         "command": "workingSets.addOpenEditors",
-        "title": "Add All Visible Editors to Working Set",
+        "title": "Add All Open Editors to Working Set",
         "category": "Working Sets",
         "icon": "$(save-all)"
       },

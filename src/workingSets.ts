@@ -232,9 +232,24 @@ export class WorkingSetsProvider
     }
   }
 
-  openAllItems(workingSet: WorkingSet) {
-    // TODO: Open all files in working set
-    console.log(`Will open all these files`, workingSet.getItems())
+  async openAllItems(workingSet: WorkingSet) {
+    if (workingSet) {
+      this.openWorkingSetItems(workingSet)
+    } else {
+      const workingSetName = await vscode.window.showQuickPick(
+        this.workingSetsNames,
+        {
+          placeHolder: "Which working set do you want to open?",
+        }
+      )
+
+      if (workingSetName) {
+        const workingSet = this.workspaceWorkingSets.get(
+          this.getWorkingSetIDByName(workingSetName)
+        )
+        workingSet && this.openWorkingSetItems(workingSet)
+      }
+    }
   }
 
   private refresh() {
@@ -344,6 +359,23 @@ export class WorkingSetsProvider
     }
 
     return openEditors
+  }
+
+  private async openWorkingSetItems(workingSet: WorkingSet) {
+    const workingSetItems = workingSet.getItems()
+    if (workingSetItems.length > 0) {
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors")
+
+      for (const { resourceUri } of workingSetItems) {
+        await vscode.commands.executeCommand("vscode.open", resourceUri, {
+          preview: false,
+        })
+      }
+    } else {
+      vscode.window.showInformationMessage(
+        `"${workingSet.label}" does not have any items to open`
+      )
+    }
   }
 }
 
