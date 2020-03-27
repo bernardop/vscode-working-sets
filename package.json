@@ -12,7 +12,8 @@
   "activationEvents": [
     "onCommand:workingSets.create",
     "onCommand:workingSets.delete",
-    "onCommand:workingSets.addFile",
+    "onCommand:workingSets.addActiveEditor",
+    "onCommand:workingSets.addOpenEditors",
     "onCommand:workingSets.removeFile",
     "onView:workingSets"
   ],
@@ -41,11 +42,16 @@
           "command": "workingSets.create",
           "when": "view == workingSets",
           "group": "navigation"
+        },
+        {
+          "command": "workingSets.addOpenEditors",
+          "when": "view == workingSets",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "workingSets.addFile",
+          "command": "workingSets.addActiveEditor",
           "when": "view == workingSets && viewItem == workingSet",
           "group": "inline"
         },
@@ -74,14 +80,20 @@
         "icon": "$(add)"
       },
       {
+        "command": "workingSets.addOpenEditors",
+        "title": "Add All Visible Editors to Working Set",
+        "category": "Working Sets",
+        "icon": "$(save-all)"
+      },
+      {
         "command": "workingSets.delete",
         "title": "Delete",
         "category": "Working Sets",
         "icon": "$(trash)"
       },
       {
-        "command": "workingSets.addFile",
-        "title": "Add Active File to Working Set",
+        "command": "workingSets.addActiveEditor",
+        "title": "Add Active Editor to Working Set",
         "category": "Working Sets",
         "icon": "$(file-add)"
       },

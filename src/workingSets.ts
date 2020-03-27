@@ -86,7 +86,7 @@ export class WorkingSetsProvider
     return workingSet ? workingSet.getItems() : this.workingSets
   }
 
-  async create() {
+  async create(withVisibleEditors?: boolean) {
     const name = await vscode.window.showInputBox({
       prompt: "New working set name",
     })
@@ -97,12 +97,22 @@ export class WorkingSetsProvider
         )
       } else {
         const uniqueId = randomBytes(16).toString("hex")
+        const workingSetItems = withVisibleEditors
+          ? (await this.getOpenTextEditorsPaths()).map(
+              (filePath) =>
+                new WorkingSetItem(vscode.Uri.file(filePath), uniqueId)
+            )
+          : []
+
         this.workspaceWorkingSets.set(
           uniqueId,
           new WorkingSet(
             uniqueId,
             name,
-            vscode.TreeItemCollapsibleState.Collapsed
+            withVisibleEditors
+              ? vscode.TreeItemCollapsibleState.Expanded
+              : vscode.TreeItemCollapsibleState.Collapsed,
+            workingSetItems
           )
         )
         vscode.window.showInformationMessage(
@@ -113,7 +123,7 @@ export class WorkingSetsProvider
     }
   }
 
-  async delete(workingSet: WorkingSet | undefined) {
+  async delete(workingSet?: WorkingSet) {
     if (workingSet) {
       this.deleteWorkingSet(workingSet.label)
     } else if (this.workingSets.length > 0) {
@@ -128,7 +138,35 @@ export class WorkingSetsProvider
     }
   }
 
-  async addFile(workingSet: WorkingSet | undefined) {
+  async addOpenEditors() {
+    if (this.workingSets.length > 0) {
+      const workingSetNameOrNew = await vscode.window.showQuickPick([
+        "New...",
+        ...this.workingSetsNames,
+      ])
+
+      if (workingSetNameOrNew) {
+        if (workingSetNameOrNew === "New...") {
+          this.create(true)
+        } else {
+          const workingSet = this.workspaceWorkingSets.get(
+            this.getWorkingSetIDByName(workingSetNameOrNew)
+          )
+
+          workingSet?.setItems(
+            ...(await this.getOpenTextEditorsPaths()).map(
+              (fileName) => fileName
+            )
+          )
+          this.updateWorkspaceState()
+        }
+      }
+    } else {
+      this.create(true)
+    }
+  }
+
+  async addActiveEditor(workingSet?: WorkingSet) {
     if (workingSet) {
       this.addActiveEditorToWorkingSet(workingSet)
     } else if (this.workingSets.length > 0) {
@@ -153,7 +191,7 @@ export class WorkingSetsProvider
     }
   }
 
-  async removeFile(workingSetItem: WorkingSetItem | undefined) {
+  async removeFile(workingSetItem?: WorkingSetItem) {
     if (workingSetItem) {
       const workingSet = this.workspaceWorkingSets.get(workingSetItem.parentId)
 
@@ -261,7 +299,7 @@ export class WorkingSetsProvider
     if (activeEditorFilePath) {
       this.workspaceWorkingSets
         .get(workingSet.id)
-        ?.setItem(activeEditorFilePath)
+        ?.setItems(activeEditorFilePath)
 
       await vscode.commands.executeCommand("workingSets.expand", workingSet)
       this.updateWorkspaceState()
@@ -286,6 +324,27 @@ export class WorkingSetsProvider
       detail: fsPath,
     }))
   }
+
+  private async getOpenTextEditorsPaths(): Promise<string[]> {
+    const openEditors: string[] = []
+    let activeEditor = vscode.window.activeTextEditor
+
+    while (activeEditor?.document) {
+      openEditors.push(activeEditor?.document.fileName || "")
+      await vscode.commands.executeCommand("workbench.action.nextEditor")
+      activeEditor = vscode.window.activeTextEditor
+
+      if (
+        openEditors.some(
+          (filePath) => filePath === activeEditor?.document.fileName
+        )
+      ) {
+        break
+      }
+    }
+
+    return openEditors
+  }
 }
 
 class WorkingSet extends vscode.TreeItem {
@@ -304,16 +363,19 @@ class WorkingSet extends vscode.TreeItem {
     return this.items
   }
 
-  setItem(filePath: string) {
-    if (!this.hasItem(filePath)) {
-      this.items = [
-        ...this.items,
-        new WorkingSetItem(vscode.Uri.file(filePath), this.id),
-      ]
-      vscode.window.showInformationMessage(
-        `"${basename(filePath)}" added to ${this.label}`
-      )
-    }
+  setItems(...filePaths: string[]) {
+    const newFilePaths = filePaths.filter((filePath) => !this.hasItem(filePath))
+
+    this.items = [
+      ...this.items,
+      ...newFilePaths.map(
+        (newFilePath) =>
+          new WorkingSetItem(vscode.Uri.file(newFilePath), this.id)
+      ),
+    ]
+
+    newFilePaths.length &&
+      vscode.window.showInformationMessage(`File(s) added to "${this.label}"`)
   }
 
   removeItem(filePath: string) {
@@ -365,8 +427,12 @@ export class WorkingSetsExplorer {
     vscode.commands.registerCommand("workingSets.delete", (workingSet) =>
       workingSetsProvider.delete(workingSet)
     )
-    vscode.commands.registerCommand("workingSets.addFile", (workingSet) =>
-      workingSetsProvider.addFile(workingSet)
+    vscode.commands.registerCommand("workingSets.addOpenEditors", () =>
+      workingSetsProvider.addOpenEditors()
+    )
+    vscode.commands.registerCommand(
+      "workingSets.addActiveEditor",
+      (workingSet) => workingSetsProvider.addActiveEditor(workingSet)
     )
     vscode.commands.registerCommand("workingSets.openAll", (workingSet) =>
       workingSetsProvider.openAllItems(workingSet)
