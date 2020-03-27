@@ -50,6 +50,11 @@
           "group": "inline"
         },
         {
+          "command": "workingSets.openAll",
+          "when": "view == workingSets && viewItem == workingSet",
+          "group": "inline"
+        },
+        {
           "command": "workingSets.delete",
           "when": "view == workingSets && viewItem == workingSet",
           "group": "inline"
@@ -85,6 +90,12 @@
         "title": "Remove File from Working Set",
         "category": "Working Sets",
         "icon": "$(remove-close)"
+      },
+      {
+        "command": "workingSets.openAll",
+        "title": "Open All Files in Working Set",
+        "category": "Working Sets",
+        "icon": "$(files)"
       }
     ]
   },

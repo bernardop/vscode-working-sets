@@ -194,6 +194,11 @@ export class WorkingSetsProvider
     }
   }
 
+  openAllItems(workingSet: WorkingSet) {
+    // TODO: Open all files in working set
+    console.log(`Will open all these files`, workingSet.getItems())
+  }
+
   private refresh() {
     this._onDidChangeTreeData.fire()
   }
@@ -362,6 +367,9 @@ export class WorkingSetsExplorer {
     )
     vscode.commands.registerCommand("workingSets.addFile", (workingSet) =>
       workingSetsProvider.addFile(workingSet)
+    )
+    vscode.commands.registerCommand("workingSets.openAll", (workingSet) =>
+      workingSetsProvider.openAllItems(workingSet)
     )
     vscode.commands.registerCommand(
       "workingSets.removeFile",
