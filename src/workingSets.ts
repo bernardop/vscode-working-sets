@@ -1,17 +1,18 @@
 import * as vscode from "vscode"
+import { existsSync } from "fs"
 import { basename } from "path"
 import { randomBytes } from "crypto"
 
 type WorkspaceWorkingSets = Map<string, WorkingSet>
 
-type StringifyableWorkspaceWorkingSetsItem = {
+type StringifyableWorkspaceWorkingSet = {
   id: string
   label: string
   collapsibleState: number
   filePaths: string[]
 }
 
-type StringifyableWorkspaceWorkingSets = StringifyableWorkspaceWorkingSetsItem[]
+type StringifyableWorkspaceWorkingSets = StringifyableWorkspaceWorkingSet[]
 
 type WorkingSetsNode = WorkingSet | WorkingSetItem
 
@@ -267,7 +268,7 @@ export class WorkingSetsProvider
         collapsibleState: workingSet.collapsibleState,
         filePaths: workingSet
           .getItems()
-          .map((workingSetItem) => workingSetItem.resourceUri.fsPath),
+          .map(({ resourceUri: { fsPath } }) => fsPath),
       })
     }
 
@@ -392,7 +393,7 @@ class WorkingSet extends vscode.TreeItem {
   contextValue = "workingSet"
 
   getItems() {
-    return this.items
+    return this.items.filter(({ existsInFileSystem }) => existsInFileSystem)
   }
 
   setItems(...filePaths: string[]) {
@@ -427,11 +428,15 @@ class WorkingSet extends vscode.TreeItem {
 }
 
 class WorkingSetItem extends vscode.TreeItem {
+  existsInFileSystem: boolean
+
   constructor(
     public readonly resourceUri: vscode.Uri,
     public readonly parentId: string
   ) {
     super(resourceUri, vscode.TreeItemCollapsibleState.None)
+
+    this.existsInFileSystem = existsSync(resourceUri.fsPath)
   }
 
   public readonly command: vscode.Command = {
