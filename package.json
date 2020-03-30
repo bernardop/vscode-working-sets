@@ -90,7 +90,7 @@
     "commands": [
       {
         "command": "workingSets.create",
-        "title": "Create New",
+        "title": "Create",
         "category": "Working Sets",
         "icon": "$(add)"
       },
