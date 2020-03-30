@@ -1,13 +1,19 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode"
-import { WorkingSetsExplorer } from "./workingSets"
+import { WorkingSetsExplorer, WorkingSetsProvider } from "./workingSets"
 // import { WorkingSetsProvider } from "./workingSets"
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  new WorkingSetsExplorer(context)
+  const workingSetsProvider = new WorkingSetsProvider(context)
+
+  vscode.commands.registerCommand("workingSets.addFromExplorer", (fileUri) =>
+    workingSetsProvider.addFileFromExplorer(fileUri)
+  )
+
+  new WorkingSetsExplorer(context, workingSetsProvider)
 }
 
 // this method is called when your extension is deactivated

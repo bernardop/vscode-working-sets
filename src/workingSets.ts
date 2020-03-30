@@ -16,6 +16,11 @@ type StringifyableWorkspaceWorkingSets = StringifyableWorkspaceWorkingSet[]
 
 type WorkingSetsNode = WorkingSet | WorkingSetItem
 
+type CreateWorkingSetOptions = {
+  withOpenEditors?: boolean
+  initialWorkingSetItemFilePath?: string
+}
+
 export class WorkingSetsProvider
   implements vscode.TreeDataProvider<WorkingSetsNode> {
   private static readonly WORKING_SETS_KEY = "workingSets"
@@ -87,10 +92,13 @@ export class WorkingSetsProvider
     return workingSet ? workingSet.getItems() : this.workingSets
   }
 
-  async create(withVisibleEditors?: boolean) {
+  async create(options?: CreateWorkingSetOptions) {
     const name = await vscode.window.showInputBox({
       prompt: "New working set name",
     })
+    const withOpenEditors = options?.withOpenEditors
+    const initialWorkingSetItemFilePath = options?.initialWorkingSetItemFilePath
+
     if (name) {
       if (this.workingSetExists(name)) {
         vscode.window.showInformationMessage(
@@ -98,27 +106,40 @@ export class WorkingSetsProvider
         )
       } else {
         const uniqueId = randomBytes(16).toString("hex")
-        const workingSetItems = withVisibleEditors
-          ? (await this.getOpenTextEditorsPaths()).map(
-              (filePath) =>
-                new WorkingSetItem(vscode.Uri.file(filePath), uniqueId)
-            )
-          : []
+        let workingSetItems: WorkingSetItem[]
 
-        this.workspaceWorkingSets.set(
-          uniqueId,
-          new WorkingSet(
-            uniqueId,
-            name,
-            withVisibleEditors
-              ? vscode.TreeItemCollapsibleState.Expanded
-              : vscode.TreeItemCollapsibleState.Collapsed,
-            workingSetItems
+        if (withOpenEditors) {
+          workingSetItems = (await this.getOpenTextEditorsPaths()).map(
+            (filePath) =>
+              new WorkingSetItem(vscode.Uri.file(filePath), uniqueId)
           )
+        } else if (initialWorkingSetItemFilePath) {
+          workingSetItems = [
+            new WorkingSetItem(
+              vscode.Uri.file(initialWorkingSetItemFilePath),
+              uniqueId
+            ),
+          ]
+        } else {
+          workingSetItems = []
+        }
+
+        const workingSet = new WorkingSet(
+          uniqueId,
+          name,
+          withOpenEditors || initialWorkingSetItemFilePath
+            ? vscode.TreeItemCollapsibleState.Expanded
+            : vscode.TreeItemCollapsibleState.Collapsed,
+          workingSetItems
         )
+
+        this.workspaceWorkingSets.set(uniqueId, workingSet)
         vscode.window.showInformationMessage(
           `"${name}" working set successfully created`
         )
+        if (withOpenEditors || initialWorkingSetItemFilePath) {
+          await vscode.commands.executeCommand("workingSets.expand", workingSet)
+        }
         this.updateWorkspaceState()
       }
     }
@@ -148,7 +169,7 @@ export class WorkingSetsProvider
 
       if (workingSetNameOrNew) {
         if (workingSetNameOrNew === "New...") {
-          this.create(true)
+          this.create({ withOpenEditors: true })
         } else {
           const workingSet = this.workspaceWorkingSets.get(
             this.getWorkingSetIDByName(workingSetNameOrNew)
@@ -163,32 +184,71 @@ export class WorkingSetsProvider
         }
       }
     } else {
-      this.create(true)
+      this.create({ withOpenEditors: true })
     }
   }
 
   async addActiveEditor(workingSet?: WorkingSet) {
-    if (workingSet) {
-      this.addActiveEditorToWorkingSet(workingSet)
-    } else if (this.workingSets.length > 0) {
-      const name = await vscode.window.showQuickPick(this.workingSetsNames)
-      if (name) {
-        const selectedWorkingSet = this.workspaceWorkingSets.get(
-          this.getWorkingSetIDByName(name)
-        )
-        selectedWorkingSet &&
-          this.addActiveEditorToWorkingSet(selectedWorkingSet)
+    const activeEditorFilePath =
+      vscode.window.activeTextEditor?.document.fileName
+
+    if (activeEditorFilePath) {
+      if (workingSet) {
+        this.addFilePathToWorkingSet(workingSet, activeEditorFilePath)
+      } else if (this.workingSets.length > 0) {
+        const workingSetNameOrNew = await vscode.window.showQuickPick([
+          "New...",
+          ...this.workingSetsNames,
+        ])
+
+        if (workingSetNameOrNew) {
+          if (workingSetNameOrNew === "New...") {
+            this.create({ initialWorkingSetItemFilePath: activeEditorFilePath })
+          } else {
+            const workingSet = this.workspaceWorkingSets.get(
+              this.getWorkingSetIDByName(workingSetNameOrNew)
+            )
+
+            workingSet?.setItems(activeEditorFilePath)
+            this.updateWorkspaceState()
+          }
+        }
+      } else {
+        this.create({ initialWorkingSetItemFilePath: activeEditorFilePath })
       }
     } else {
-      const action = await vscode.window.showInformationMessage(
-        "There are no working sets to add files to. Do you want to create one?",
-        "Yes",
-        "No"
-      )
+      vscode.window.showInformationMessage("No Active Editor available")
+    }
+  }
 
-      if (action && action === "Yes") {
-        this.create()
+  async addFileFromExplorer({ scheme, fsPath }: vscode.Uri) {
+    console.log(scheme, fsPath)
+    if (scheme === "file") {
+      if (this.workingSets.length > 0) {
+        const workingSetNameOrNew = await vscode.window.showQuickPick([
+          "New...",
+          ...this.workingSetsNames,
+        ])
+
+        if (workingSetNameOrNew) {
+          if (workingSetNameOrNew === "New...") {
+            this.create({ initialWorkingSetItemFilePath: fsPath })
+          } else {
+            const workingSet = this.workspaceWorkingSets.get(
+              this.getWorkingSetIDByName(workingSetNameOrNew)
+            )
+
+            workingSet?.setItems(fsPath)
+            this.updateWorkspaceState()
+          }
+        }
+      } else {
+        this.create({ initialWorkingSetItemFilePath: fsPath })
       }
+    } else {
+      vscode.window.showInformationMessage(
+        "You are trying to add a resource that is not a file. Please try again with one."
+      )
     }
   }
 
@@ -309,17 +369,14 @@ export class WorkingSetsProvider
     this.updateWorkspaceState()
   }
 
-  private async addActiveEditorToWorkingSet(workingSet: WorkingSet) {
-    const activeEditorDocument = vscode.window.activeTextEditor?.document
-    const activeEditorFilePath = activeEditorDocument?.fileName
-    if (activeEditorFilePath) {
-      this.workspaceWorkingSets
-        .get(workingSet.id)
-        ?.setItems(activeEditorFilePath)
+  private async addFilePathToWorkingSet(
+    workingSet: WorkingSet,
+    filePath: string
+  ) {
+    this.workspaceWorkingSets.get(workingSet.id)?.setItems(filePath)
 
-      await vscode.commands.executeCommand("workingSets.expand", workingSet)
-      this.updateWorkspaceState()
-    }
+    await vscode.commands.executeCommand("workingSets.expand", workingSet)
+    this.updateWorkspaceState()
   }
 
   private async updateWorkspaceState() {
@@ -417,7 +474,7 @@ class WorkingSet extends vscode.TreeItem {
         ({ resourceUri: { fsPath } }) => fsPath !== filePath
       )
       vscode.window.showInformationMessage(
-        `"${basename(filePath)}" removed from ${this.label}`
+        `"${basename(filePath)}" removed from "${this.label}"`
       )
     }
   }
@@ -451,8 +508,10 @@ class WorkingSetItem extends vscode.TreeItem {
 export class WorkingSetsExplorer {
   private workingSetsViewer: vscode.TreeView<WorkingSetsNode>
 
-  constructor(context: vscode.ExtensionContext) {
-    const workingSetsProvider = new WorkingSetsProvider(context)
+  constructor(
+    context: vscode.ExtensionContext,
+    private workingSetsProvider: WorkingSetsProvider
+  ) {
     this.workingSetsViewer = vscode.window.createTreeView("workingSets", {
       treeDataProvider: workingSetsProvider,
       showCollapseAll: true,

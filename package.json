@@ -15,6 +15,8 @@
     "onCommand:workingSets.addActiveEditor",
     "onCommand:workingSets.addOpenEditors",
     "onCommand:workingSets.removeFile",
+    "onCommand:workingSets.addFromExplorer",
+    "onView:explorer",
     "onView:workingSets"
   ],
   "main": "./out/extension.js",
@@ -70,6 +72,19 @@
           "when": "view == workingSets && viewItem == workingSetItem",
           "group": "inline"
         }
+      ],
+      "explorer/context": [
+        {
+          "command": "workingSets.addFromExplorer",
+          "group": "workingSets",
+          "when": "!explorerResourceIsFolder"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "workingSets.addFromExplorer",
+          "when": "false"
+        }
       ]
     },
     "commands": [
@@ -108,6 +123,11 @@
         "title": "Open All Files in Working Set",
         "category": "Working Sets",
         "icon": "$(files)"
+      },
+      {
+        "command": "workingSets.addFromExplorer",
+        "title": "Add File to Working Set",
+        "category": "Working Sets"
       }
     ]
   },
