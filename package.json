@@ -21,7 +21,7 @@
     "onCommand:workingSets.addActiveEditor",
     "onCommand:workingSets.addOpenEditors",
     "onCommand:workingSets.removeFile",
-    "onCommand:workingSets.addFromExplorer",
+    "onCommand:workingSets.addFile",
     "onView:explorer",
     "onView:workingSets"
   ],
@@ -79,16 +79,23 @@
           "group": "inline"
         }
       ],
+      "editor/title/context": [
+        {
+          "command": "workingSets.addFile",
+          "group": "workingSets",
+          "when": "resourceScheme == file"
+        }
+      ],
       "explorer/context": [
         {
-          "command": "workingSets.addFromExplorer",
+          "command": "workingSets.addFile",
           "group": "workingSets",
           "when": "!explorerResourceIsFolder"
         }
       ],
       "commandPalette": [
         {
-          "command": "workingSets.addFromExplorer",
+          "command": "workingSets.addFile",
           "when": "false"
         }
       ]
@@ -131,7 +138,7 @@
         "icon": "$(files)"
       },
       {
-        "command": "workingSets.addFromExplorer",
+        "command": "workingSets.addFile",
         "title": "Add File to Working Set",
         "category": "Working Sets"
       }

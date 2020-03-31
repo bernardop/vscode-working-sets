@@ -210,7 +210,7 @@ export class WorkingSetsProvider
     }
   }
 
-  async addFileFromExplorer({ scheme, fsPath }: vscode.Uri) {
+  async addFile({ scheme, fsPath }: vscode.Uri) {
     console.log(scheme, fsPath)
     if (scheme === "file") {
       if (this.workingSets.length > 0) {
@@ -429,10 +429,8 @@ export class WorkingSetsProvider
 export class WorkingSetsExplorer {
   private workingSetsViewer: vscode.TreeView<WorkingSetsNode>
 
-  constructor(
-    context: vscode.ExtensionContext,
-    private workingSetsProvider: WorkingSetsProvider
-  ) {
+  constructor(context: vscode.ExtensionContext) {
+    const workingSetsProvider = new WorkingSetsProvider(context)
     this.workingSetsViewer = vscode.window.createTreeView("workingSets", {
       treeDataProvider: workingSetsProvider,
       showCollapseAll: true,
@@ -453,6 +451,9 @@ export class WorkingSetsExplorer {
     )
     vscode.commands.registerCommand("workingSets.openAll", (workingSet) =>
       workingSetsProvider.openAllItems(workingSet)
+    )
+    vscode.commands.registerCommand("workingSets.addFile", (fileUri) =>
+      workingSetsProvider.addFile(fileUri)
     )
     vscode.commands.registerCommand(
       "workingSets.removeFile",
