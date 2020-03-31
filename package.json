@@ -3,6 +3,7 @@
   "displayName": "Working Sets",
   "description": "Switch between working sets of open files with ease",
   "version": "1.0.0-alpha.0",
+  "publisher": "bernardop",
   "engines": {
     "vscode": "^1.43.0"
   },
