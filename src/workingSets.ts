@@ -123,9 +123,10 @@ export class WorkingSetsProvider
         )
 
         this.workspaceWorkingSets.set(uniqueId, workingSet)
-        vscode.window.showInformationMessage(
-          `"${name}" working set successfully created`
-        )
+        vscode.workspace.getConfiguration("workingSets").showNotifications &&
+          vscode.window.showInformationMessage(
+            `"${name}" working set successfully created`
+          )
         if (withOpenEditors || initialWorkingSetItemFilePath) {
           await vscode.commands.executeCommand("workingSets.expand", workingSet)
         }
@@ -236,7 +237,7 @@ export class WorkingSetsProvider
       }
     } else {
       vscode.window.showInformationMessage(
-        "You are trying to add a resource that is not a file. Please try again with one."
+        "You are trying to add a resource that is not a file. Please try again."
       )
     }
   }
@@ -350,12 +351,28 @@ export class WorkingSetsProvider
     return this.workspaceWorkingSets.has(this.getWorkingSetIDByName(name))
   }
 
-  private deleteWorkingSet(name: string) {
-    this.workspaceWorkingSets.delete(this.getWorkingSetIDByName(name))
-    vscode.window.showInformationMessage(
-      `"${name}" working set successfully deleted`
-    )
-    this.updateWorkspaceState()
+  private async deleteWorkingSet(name: string) {
+    const performDelete = () => {
+      this.workspaceWorkingSets.delete(this.getWorkingSetIDByName(name))
+      vscode.workspace.getConfiguration("workingSets").showNotifications &&
+        vscode.window.showInformationMessage(
+          `"${name}" working set successfully deleted`
+        )
+      this.updateWorkspaceState()
+    }
+
+    if (vscode.workspace.getConfiguration("workingSets").confirmOnDelete) {
+      const confirmation = await vscode.window.showInformationMessage(
+        `Are you sure you want to delete "${name}"?`,
+        { modal: true },
+        "Yes"
+      )
+      if (confirmation === "Yes") {
+        performDelete()
+      }
+    } else {
+      performDelete()
+    }
   }
 
   private async addFilePathToWorkingSet(

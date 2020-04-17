@@ -47,7 +47,8 @@ export class WorkingSet extends vscode.TreeItem {
       ),
     ]
 
-    newFilePaths.length &&
+    vscode.workspace.getConfiguration("workingSets").showNotifications &&
+      newFilePaths.length &&
       vscode.window.showInformationMessage(`File(s) added to "${this.label}"`)
   }
 
@@ -56,9 +57,10 @@ export class WorkingSet extends vscode.TreeItem {
       this.items = this.items.filter(
         ({ resourceUri: { fsPath } }) => fsPath !== filePath
       )
-      vscode.window.showInformationMessage(
-        `"${basename(filePath)}" removed from "${this.label}"`
-      )
+      vscode.workspace.getConfiguration("workingSets").showNotifications &&
+        vscode.window.showInformationMessage(
+          `"${basename(filePath)}" removed from "${this.label}"`
+        )
     }
   }
 

@@ -142,7 +142,22 @@
         "title": "Add File to Working Set",
         "category": "Working Sets"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Working Sets",
+      "properties": {
+        "workingSets.confirmOnDelete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show confirmation popup when deleting working sets"
+        },
+        "workingSets.showNotifications": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show confirmation notifications after every action"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "webpack --mode production",
