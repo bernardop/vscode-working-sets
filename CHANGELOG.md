@@ -4,6 +4,6 @@ All notable changes to the "working-sets" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [1.0.0]
 
 - Initial release
