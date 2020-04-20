@@ -159,7 +159,7 @@
       }
     }
   },
-  "icon": "./assets/briefcase-256.png",
+  "icon": "assets/briefcase-256.png",
   "galleryBanner": {
     "color": "#5a8a64",
     "theme": "dark"
