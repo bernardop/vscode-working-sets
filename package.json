@@ -32,7 +32,7 @@
         {
           "id": "working-sets",
           "title": "Working Sets",
-          "icon": "assets/briefcase.svg"
+          "icon": "assets/briefcase-72.png"
         }
       ]
     },
@@ -158,6 +158,11 @@
         }
       }
     }
+  },
+  "icon": "./assets/briefcase-256.png",
+  "galleryBanner": {
+    "color": "#5a8a64",
+    "theme": "dark"
   },
   "scripts": {
     "vscode:prepublish": "webpack --mode production",

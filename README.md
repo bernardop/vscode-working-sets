@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/briefcase-72.png" />
+</p>
+
 # Visual Studio Code Working Sets
 
 Conveniently manage "working sets" of files. This extension allows you to create, delete, add/remove files to, and switch between working sets with ease.
