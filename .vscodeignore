@@ -8,3 +8,4 @@ src/
 **/*.ts
 node_modules
 webpack.config.js
+assets/
