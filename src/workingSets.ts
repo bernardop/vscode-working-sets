@@ -37,17 +37,9 @@ export class WorkingSetsProvider
   }
 
   constructor(private readonly context: vscode.ExtensionContext) {
-    const storedWorkingSets:
-      | StringifyableWorkspaceWorkingSets
-      | undefined = context.workspaceState.get(
-      WorkingSetsProvider.WORKING_SETS_KEY
-    )
+    const storedWorkingSets = this.loadWorkingSets(context)
 
-    if (storedWorkingSets) {
-      this.workspaceWorkingSets = this.getWorkspaceWorkingSetsFromJSONStringifyableObject(
-        storedWorkingSets
-      )
-    } else {
+    if (!storedWorkingSets) {
       context.workspaceState
         .update(WorkingSetsProvider.WORKING_SETS_KEY, [])
         .then(
@@ -79,6 +71,10 @@ export class WorkingSetsProvider
 
   getChildren(workingSet?: WorkingSet): WorkingSetsNode[] {
     return workingSet ? workingSet.getItems() : this.workingSets
+  }
+
+  reload(context: vscode.ExtensionContext) {
+    this.loadWorkingSets(context)
   }
 
   async create(options?: CreateWorkingSetOptions) {
@@ -303,6 +299,25 @@ export class WorkingSetsProvider
     }
   }
 
+  private loadWorkingSets(
+    context: vscode.ExtensionContext
+  ): StringifyableWorkspaceWorkingSets | undefined {
+    const storedWorkingSets:
+      | StringifyableWorkspaceWorkingSets
+      | undefined = context.workspaceState.get(
+      WorkingSetsProvider.WORKING_SETS_KEY
+    )
+
+    if (storedWorkingSets) {
+      this.workspaceWorkingSets = this.getWorkspaceWorkingSetsFromJSONStringifyableObject(
+        storedWorkingSets
+      )
+      this.refresh()
+    }
+
+    return storedWorkingSets
+  }
+
   private refresh() {
     this._onDidChangeTreeData.fire()
   }
@@ -478,6 +493,9 @@ export class WorkingSetsExplorer {
     )
     vscode.commands.registerCommand("workingSets.expand", (workingSet) =>
       this.reveal(workingSet)
+    )
+    vscode.commands.registerCommand("workingSets.reload", () =>
+      workingSetsProvider.reload(context)
     )
   }
 
