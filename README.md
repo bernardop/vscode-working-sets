@@ -36,13 +36,11 @@ Add the active editor to a Working Set.
 
 ![Add Active Editor](./assets/add-file-1.png)
 
----
+## You can also use the `Working Sets: Add Active Editor to Working Set` command.
 
-Add the active editor from the Explorer context menu.
+Add a file from the Explorer context menu.
 
 ![Add Active Editor from Context Menu](./assets/add-file-2.png)
-
-You can also use the `Working Sets: Add Active Editor to Working Set` command.
 
 ### Open an Existing Working Set
 
