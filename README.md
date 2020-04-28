@@ -36,7 +36,9 @@ Add the active editor to a Working Set.
 
 ![Add Active Editor](./assets/add-file-1.png)
 
-## You can also use the `Working Sets: Add Active Editor to Working Set` command.
+You can also use the `Working Sets: Add Active Editor to Working Set` command.
+
+---
 
 Add a file from the Explorer context menu.
 
@@ -63,6 +65,8 @@ You can also use the `Working Sets: Remove File from Working Set` command.
 Delete a Working Set from the Working Sets sidebar view.
 
 ![Delete Working Set](./assets/delete.png)
+
+You can also use the `Working Sets: Delete` command.
 
 ## Extension Settings
 
