@@ -22,6 +22,7 @@
     "onCommand:workingSets.addOpenEditors",
     "onCommand:workingSets.removeFile",
     "onCommand:workingSets.addFile",
+    "onCommand:workingSets.reload",
     "onView:explorer",
     "onView:workingSets"
   ],
@@ -53,6 +54,11 @@
         },
         {
           "command": "workingSets.addOpenEditors",
+          "when": "view == workingSets",
+          "group": "navigation"
+        },
+        {
+          "command": "workingSets.reload",
           "when": "view == workingSets",
           "group": "navigation"
         }
@@ -141,6 +147,12 @@
         "command": "workingSets.addFile",
         "title": "Add File to Working Set",
         "category": "Working Sets"
+      },
+      {
+        "command": "workingSets.reload",
+        "title": "Reload",
+        "category": "Working Sets",
+        "icon": "$(refresh)"
       }
     ],
     "configuration": {
