@@ -23,6 +23,10 @@
     "onCommand:workingSets.removeFile",
     "onCommand:workingSets.addFile",
     "onCommand:workingSets.reload",
+    "onCommand:workingSets.sortFilesAscending",
+    "onCommand:workingSets.sortFilesDescending",
+    "onCommand:workingSets.sortWorkingSetsAscending",
+    "onCommand:workingSets.sortWorkingSetsDescending",
     "onView:explorer",
     "onView:workingSets"
   ],
@@ -61,6 +65,14 @@
           "command": "workingSets.reload",
           "when": "view == workingSets",
           "group": "navigation"
+        },
+        {
+          "command": "workingSets.sortWorkingSetsAscending",
+          "when": "view == workingSets"
+        },
+        {
+          "command": "workingSets.sortWorkingSetsDescending",
+          "when": "view == workingSets"
         }
       ],
       "view/item/context": [
@@ -83,6 +95,16 @@
           "command": "workingSets.removeFile",
           "when": "view == workingSets && viewItem == workingSetItem",
           "group": "inline"
+        },
+        {
+          "command": "workingSets.sortFilesAscending",
+          "when": "view == workingSets && viewItem == workingSet",
+          "group": "inline@4"
+        },
+        {
+          "command": "workingSets.sortFilesDescending",
+          "when": "view == workingSets && viewItem == workingSet",
+          "group": "inline@5"
         }
       ],
       "editor/title/context": [
@@ -153,6 +175,34 @@
         "title": "Reload",
         "category": "Working Sets",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "workingSets.sortWorkingSetsAscending",
+        "title": "Sort Working Sets in Ascending Order",
+        "category": "Working Sets"
+      },
+      {
+        "command": "workingSets.sortWorkingSetsDescending",
+        "title": "Sort Working Sets in Descending Order",
+        "category": "Working Sets"
+      },
+      {
+        "command": "workingSets.sortFilesAscending",
+        "title": "Sort Files in Ascending Order",
+        "category": "Working Sets",
+        "icon": {
+          "light": "assets/icons/sort-alpha-down.svg",
+          "dark": "assets/icons/sort-alpha-down-dark.svg"
+        }
+      },
+      {
+        "command": "workingSets.sortFilesDescending",
+        "title": "Sort Files in Descending Order",
+        "category": "Working Sets",
+        "icon": {
+          "light": "assets/icons/sort-alpha-down-alt.svg",
+          "dark": "assets/icons/sort-alpha-down-alt-dark.svg"
+        }
       }
     ],
     "configuration": {
