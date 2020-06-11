@@ -10,7 +10,16 @@ Conveniently manage "working sets" of files. This extension allows you to create
 
 ### Available Commands
 
-![Available Commands](./assets/commands.png)
+- `Working Sets: Create`
+- `Working Sets: Delete`
+- `Working Sets: Add Active Editor to Working Set`
+- `Working Sets: Open All Files in Working Set`
+- `Working Sets: Remove File from Working Set`
+- `Working Sets: Add All Open Editors to Working Set`
+- `Working Sets: Sort Working Sets in Ascending Order`
+- `Working Sets: Sort Working Sets in Descending Order`
+- `Working Sets: Sort Files in Ascending Order`
+- `Working Sets: Sort Files in Descending Order`
 
 ### Create a Working Set
 
@@ -67,6 +76,28 @@ Delete a Working Set from the Working Sets sidebar view.
 ![Delete Working Set](./assets/delete.png)
 
 You can also use the `Working Sets: Delete` command.
+
+### Sort Working Sets
+
+Sort Working Sets (Ascending or Descending) from `...` menu in Working Sets sidebar view title.
+
+![Sort Working Sets](./assets/sort-sets.png)
+
+You can also use the following commands:
+
+- `Working Sets: Sort Working Sets in Ascending Order`
+- `Working Sets: Sort Working Sets in Descending Order`
+
+### Sort Files within a Working Sets
+
+Sort files in a Working Sets (Ascending or Descending)
+
+![Sort Files in Working Sets](./assets/sort-files.png)
+
+You can also use the following commands:
+
+- `Working Sets: Sort Files in Ascending Order`
+- `Working Sets: Sort Files in Descending Order`
 
 ## Extension Settings
 

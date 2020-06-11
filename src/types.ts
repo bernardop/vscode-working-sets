@@ -64,6 +64,17 @@ export class WorkingSet extends vscode.TreeItem {
     }
   }
 
+  sort(sortType: SortType) {
+    this.items.sort((itemA, itemB) => {
+      const itemAFileName = basename(itemA.resourceUri.fsPath)
+      const itemBFileName = basename(itemB.resourceUri.fsPath)
+
+      return sortType === SortType.ASCENDING
+        ? itemAFileName.localeCompare(itemBFileName)
+        : itemBFileName.localeCompare(itemAFileName)
+    })
+  }
+
   private hasItem(filePath: string) {
     return this.items.some(({ resourceUri: { fsPath } }) => fsPath === filePath)
   }
@@ -88,4 +99,9 @@ export class WorkingSetItem extends vscode.TreeItem {
   }
 
   contextValue = "workingSetItem"
+}
+
+export enum SortType {
+  ASCENDING,
+  DESCENDING,
 }

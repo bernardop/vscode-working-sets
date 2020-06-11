@@ -8,6 +8,7 @@ import {
   WorkspaceWorkingSets,
   StringifyableWorkspaceWorkingSets,
   CreateWorkingSetOptions,
+  SortType,
 } from "./types"
 
 export class WorkingSetsProvider
@@ -299,6 +300,44 @@ export class WorkingSetsProvider
     }
   }
 
+  sortWorkingSets(sortType: SortType) {
+    this.workspaceWorkingSets = new Map(
+      [...this.workspaceWorkingSets.entries()].sort(
+        (workingSetA, workingSetB) => {
+          return sortType === SortType.ASCENDING
+            ? workingSetA[1].label.localeCompare(workingSetB[1].label)
+            : workingSetB[1].label.localeCompare(workingSetA[1].label)
+        }
+      )
+    )
+    this.updateWorkspaceState()
+  }
+
+  async sortFiles(workingSet: WorkingSet, sortType: SortType) {
+    if (workingSet) {
+      this.sortWorkingSetFiles(workingSet, sortType)
+    } else {
+      const workingSetName = await vscode.window.showQuickPick(
+        this.workingSetsNames,
+        {
+          placeHolder: "Which working set do you want to sort?",
+        }
+      )
+
+      if (workingSetName) {
+        const workingSet = this.workspaceWorkingSets.get(
+          this.getWorkingSetIDByName(workingSetName)
+        )
+        workingSet && this.sortWorkingSetFiles(workingSet, sortType)
+      }
+    }
+  }
+
+  private sortWorkingSetFiles(workingSet: WorkingSet, sortType: SortType) {
+    workingSet.sort(sortType)
+    this.updateWorkspaceState()
+  }
+
   private loadWorkingSets(
     context: vscode.ExtensionContext
   ): StringifyableWorkspaceWorkingSets | undefined {
@@ -496,6 +535,24 @@ export class WorkingSetsExplorer {
     )
     vscode.commands.registerCommand("workingSets.reload", () =>
       workingSetsProvider.reload(context)
+    )
+    vscode.commands.registerCommand(
+      "workingSets.sortWorkingSetsAscending",
+      () => workingSetsProvider.sortWorkingSets(SortType.ASCENDING)
+    )
+    vscode.commands.registerCommand(
+      "workingSets.sortWorkingSetsDescending",
+      () => workingSetsProvider.sortWorkingSets(SortType.DESCENDING)
+    )
+    vscode.commands.registerCommand(
+      "workingSets.sortFilesAscending",
+      (workingSet) =>
+        workingSetsProvider.sortFiles(workingSet, SortType.ASCENDING)
+    )
+    vscode.commands.registerCommand(
+      "workingSets.sortFilesDescending",
+      (workingSet) =>
+        workingSetsProvider.sortFiles(workingSet, SortType.DESCENDING)
     )
   }
 

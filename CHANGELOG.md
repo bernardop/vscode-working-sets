@@ -6,6 +6,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [1.2.0] - 06/11/2020
+
+### Added
+
+- Ability to sort working sets as well as files within a working set.
+
 ## [1.1.0] - 04/28/2020
 
 ### Added
