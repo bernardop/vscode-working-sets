@@ -1,7 +1,6 @@
 import * as vscode from "vscode"
 import { basename } from "path"
 import { existsSync } from "fs"
-import { threadId } from "worker_threads"
 
 export type WorkspaceWorkingSets = Map<string, WorkingSet>
 
