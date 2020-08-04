@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 import { basename } from "path"
 import { existsSync } from "fs"
+import { threadId } from "worker_threads"
 
 export type WorkspaceWorkingSets = Map<string, WorkingSet>
 
@@ -76,11 +77,23 @@ export class WorkingSet extends vscode.TreeItem {
   }
 
   moveItem(filePath: string, direction: MoveDirection) {
-    const index = this.items.findIndex(({ resourceUri: { fsPath } }) => fsPath === filePath);
-    if (direction == MoveDirection.UP && index > 0) {
-      [this.items[index - 1], this.items[index]] = [this.items[index], this.items[index - 1]]
-    } else if (direction == MoveDirection.DOWN && index != -1 && index < this.items.length - 1) {
-      [this.items[index + 1], this.items[index]] = [this.items[index], this.items[index + 1]]
+    const index = this.items.findIndex(
+      ({ resourceUri: { fsPath } }) => fsPath === filePath
+    )
+    if (direction === MoveDirection.UP && index > 0) {
+      ;[this.items[index - 1], this.items[index]] = [
+        this.items[index],
+        this.items[index - 1],
+      ]
+    } else if (
+      direction === MoveDirection.DOWN &&
+      index !== -1 &&
+      index < this.items.length - 1
+    ) {
+      ;[this.items[index + 1], this.items[index]] = [
+        this.items[index],
+        this.items[index + 1],
+      ]
     }
   }
 
@@ -117,5 +130,5 @@ export enum SortType {
 
 export enum MoveDirection {
   UP,
-  DOWN
+  DOWN,
 }

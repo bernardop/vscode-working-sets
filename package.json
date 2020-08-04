@@ -258,7 +258,8 @@
     "pretest": "npm run test-compile && npm run lint",
     "test": "node ./out/test/runTest.js",
     "package": "vsce package",
-    "publish": "vsce publish"
+    "publish": "vsce publish",
+    "prettier": "prettier --write src"
   },
   "devDependencies": {
     "@types/glob": "^7.1.1",

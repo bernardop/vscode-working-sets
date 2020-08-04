@@ -340,7 +340,9 @@ export class WorkingSetsProvider
   }
 
   moveFile(workingSetItem: WorkingSetItem, direction: MoveDirection) {
-    if (!workingSetItem) return;
+    if (!workingSetItem) {
+      return
+    }
     const workingSet = this.workspaceWorkingSets.get(workingSetItem.parentId)
     workingSet?.moveItem(workingSetItem.resourceUri.fsPath, direction)
     this.updateWorkspaceState()
@@ -564,11 +566,13 @@ export class WorkingSetsExplorer {
     )
     vscode.commands.registerCommand(
       "workingSets.moveFileUp",
-      (workingSetItem) => workingSetsProvider.moveFile(workingSetItem, MoveDirection.UP)
+      (workingSetItem) =>
+        workingSetsProvider.moveFile(workingSetItem, MoveDirection.UP)
     )
     vscode.commands.registerCommand(
       "workingSets.moveFileDown",
-      (workingSetItem) => workingSetsProvider.moveFile(workingSetItem, MoveDirection.DOWN)
+      (workingSetItem) =>
+        workingSetsProvider.moveFile(workingSetItem, MoveDirection.DOWN)
     )
   }
 
