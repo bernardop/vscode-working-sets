@@ -6,6 +6,14 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Added
+
+- Ability to manually order files within a working set by moving them up or down ([#9](https://github.com/bernardop/vscode-working-sets/pull/9)). Thanks [Maciej Dems (@macdems)]
+
+### Changed
+
+- Updated activity bar icon to be more consistent with VS Code's icon language ([#9](https://github.com/bernardop/vscode-working-sets/pull/9)). Thanks [Maciej Dems (@macdems)]
+
 ## [1.2.0] - 06/11/2020
 
 ### Added
