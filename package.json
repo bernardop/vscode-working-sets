@@ -37,7 +37,7 @@
         {
           "id": "working-sets",
           "title": "Working Sets",
-          "icon": "assets/briefcase-72.png"
+          "icon": "assets/briefcase.svg"
         }
       ]
     },
@@ -105,6 +105,16 @@
           "command": "workingSets.sortFilesDescending",
           "when": "view == workingSets && viewItem == workingSet",
           "group": "inline@5"
+        },
+        {
+          "command": "workingSets.moveFileUp",
+          "when": "view == workingSets && viewItem == workingSetItem",
+          "group": "inline"
+        },
+        {
+          "command": "workingSets.moveFileDown",
+          "when": "view == workingSets && viewItem == workingSetItem",
+          "group": "inline"
         }
       ],
       "editor/title/context": [
@@ -203,6 +213,18 @@
           "light": "assets/icons/sort-alpha-down-alt.svg",
           "dark": "assets/icons/sort-alpha-down-alt-dark.svg"
         }
+      },
+      {
+        "command": "workingSets.moveFileUp",
+        "title": "Move file up in the working set",
+        "category": "Working Sets",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "workingSets.moveFileDown",
+        "title": "Move file down in the working set",
+        "category": "Working Sets",
+        "icon": "$(arrow-down)"
       }
     ],
     "configuration": {
@@ -234,7 +256,10 @@
     "lint": "eslint src --ext ts",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run test-compile && npm run lint",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "prettier": "prettier --write src"
   },
   "devDependencies": {
     "@types/glob": "^7.1.1",

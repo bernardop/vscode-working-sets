@@ -75,6 +75,27 @@ export class WorkingSet extends vscode.TreeItem {
     })
   }
 
+  moveItem(filePath: string, direction: MoveDirection) {
+    const index = this.items.findIndex(
+      ({ resourceUri: { fsPath } }) => fsPath === filePath
+    )
+    if (direction === MoveDirection.UP && index > 0) {
+      ;[this.items[index - 1], this.items[index]] = [
+        this.items[index],
+        this.items[index - 1],
+      ]
+    } else if (
+      direction === MoveDirection.DOWN &&
+      index !== -1 &&
+      index < this.items.length - 1
+    ) {
+      ;[this.items[index + 1], this.items[index]] = [
+        this.items[index],
+        this.items[index + 1],
+      ]
+    }
+  }
+
   private hasItem(filePath: string) {
     return this.items.some(({ resourceUri: { fsPath } }) => fsPath === filePath)
   }
@@ -104,4 +125,9 @@ export class WorkingSetItem extends vscode.TreeItem {
 export enum SortType {
   ASCENDING,
   DESCENDING,
+}
+
+export enum MoveDirection {
+  UP,
+  DOWN,
 }

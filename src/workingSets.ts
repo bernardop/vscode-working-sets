@@ -9,6 +9,7 @@ import {
   StringifyableWorkspaceWorkingSets,
   CreateWorkingSetOptions,
   SortType,
+  MoveDirection,
 } from "./types"
 
 export class WorkingSetsProvider
@@ -338,6 +339,15 @@ export class WorkingSetsProvider
     this.updateWorkspaceState()
   }
 
+  moveFile(workingSetItem: WorkingSetItem, direction: MoveDirection) {
+    if (!workingSetItem) {
+      return
+    }
+    const workingSet = this.workspaceWorkingSets.get(workingSetItem.parentId)
+    workingSet?.moveItem(workingSetItem.resourceUri.fsPath, direction)
+    this.updateWorkspaceState()
+  }
+
   private loadWorkingSets(
     context: vscode.ExtensionContext
   ): StringifyableWorkspaceWorkingSets | undefined {
@@ -553,6 +563,16 @@ export class WorkingSetsExplorer {
       "workingSets.sortFilesDescending",
       (workingSet) =>
         workingSetsProvider.sortFiles(workingSet, SortType.DESCENDING)
+    )
+    vscode.commands.registerCommand(
+      "workingSets.moveFileUp",
+      (workingSetItem) =>
+        workingSetsProvider.moveFile(workingSetItem, MoveDirection.UP)
+    )
+    vscode.commands.registerCommand(
+      "workingSets.moveFileDown",
+      (workingSetItem) =>
+        workingSetsProvider.moveFile(workingSetItem, MoveDirection.DOWN)
     )
   }
 
