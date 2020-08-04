@@ -6,6 +6,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [1.3.0] - 08/04/2020
+
 ### Added
 
 - Ability to manually order files within a working set by moving them up or down ([#9](https://github.com/bernardop/vscode-working-sets/pull/9)). Thanks [Maciej Dems (@macdems)](https://github.com/macdems)
