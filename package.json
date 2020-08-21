@@ -135,6 +135,14 @@
         {
           "command": "workingSets.addFile",
           "when": "false"
+        },
+        {
+          "command": "workingSets.moveFileUp",
+          "when": "false"
+        },
+        {
+          "command": "workingSets.moveFileDown",
+          "when": "false"
         }
       ]
     },
