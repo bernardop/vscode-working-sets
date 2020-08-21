@@ -11,6 +11,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Added
 
 - "Move Files" section to README
+- `lint-staged` to project so it runs `eslint` and `prettier` on `pre-commit`
 
 ### Fixed
 
