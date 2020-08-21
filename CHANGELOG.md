@@ -17,6 +17,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 - When choosing "Move File Up" and "Move File Down" commands from the Command Palette, an error was shown so they have been removed from showing up there.
 
+### Updated
+
+- Dependencies to latest versions.
+
 ## [1.3.0] - 08/04/2020
 
 ### Added

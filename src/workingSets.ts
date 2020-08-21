@@ -368,7 +368,7 @@ export class WorkingSetsProvider
   }
 
   private refresh() {
-    this._onDidChangeTreeData.fire()
+    this._onDidChangeTreeData.fire(undefined)
   }
 
   private getJSONStringifyableWorkspaceWorkingSets(): StringifyableWorkspaceWorkingSets {
