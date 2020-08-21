@@ -8,7 +8,7 @@ Conveniently manage "working sets" of files. This extension allows you to create
 
 ## Features
 
-### Available Commands
+### Available Commands in Command Palette
 
 - `Working Sets: Create`
 - `Working Sets: Delete`
@@ -98,6 +98,12 @@ You can also use the following commands:
 
 - `Working Sets: Sort Files in Ascending Order`
 - `Working Sets: Sort Files in Descending Order`
+
+### Move Files Manually within a Working Sets
+
+Move files in a Working Sets (Up or Down)
+
+![Move Files in Working Sets](./assets/move-files.png)
 
 ## Extension Settings
 
