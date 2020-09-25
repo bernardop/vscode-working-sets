@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Added
+
+- Add option to save working sets in the workspace folder.
+
 ## [1.3.1] - 08/21/2020
 
 ### Added
