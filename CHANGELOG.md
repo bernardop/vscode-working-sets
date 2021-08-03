@@ -8,7 +8,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Added
 
-- Add option to save working sets in the workspace folder.
+- Add option to save working sets in the current workspace (.vscode) folder.
 
 ## [1.3.1] - 08/21/2020
 
