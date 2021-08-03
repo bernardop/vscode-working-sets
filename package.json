@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/bernardop/vscode-working-sets"
   },
-  "version": "1.3.1",
+  "version": "1.4.0",
   "publisher": "bernardop",
   "engines": {
     "vscode": "^1.43.0"
@@ -247,6 +247,11 @@
           "type": "boolean",
           "default": false,
           "description": "Show confirmation notifications after every action"
+        },
+        "workingSets.saveWorkingSetsInProject": {
+          "type": "boolean",
+          "default": false,
+          "description": "Save (and restore) working sets locally in the opened project instead of globally in VSCode"
         }
       }
     }

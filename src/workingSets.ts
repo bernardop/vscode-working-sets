@@ -1,4 +1,6 @@
 import * as vscode from "vscode"
+import * as fs from "fs"
+import * as path from "path"
 import { basename } from "path"
 import { randomBytes } from "crypto"
 import {
@@ -348,14 +350,33 @@ export class WorkingSetsProvider
     this.updateWorkspaceState()
   }
 
+  private loadWorkingSetsJSONStringifyableObjectFromFile() {
+    const fileName = path.join(
+      vscode.workspace.workspaceFolders![0].uri.fsPath,
+      ".vscode",
+      "working_sets.json"
+    )
+    if (!fs.existsSync(fileName)) {
+      return undefined
+    }
+    try {
+      return JSON.parse(fs.readFileSync(fileName).toString())
+    } catch (err) {
+      vscode.window.showErrorMessage(
+        `Could not load working sets from ${fileName}: ${err.message}`
+      )
+      return undefined
+    }
+  }
+
   private loadWorkingSets(
     context: vscode.ExtensionContext
   ): StringifyableWorkspaceWorkingSets | undefined {
-    const storedWorkingSets:
-      | StringifyableWorkspaceWorkingSets
-      | undefined = context.workspaceState.get(
-      WorkingSetsProvider.WORKING_SETS_KEY
-    )
+    const storedWorkingSets: StringifyableWorkspaceWorkingSets | undefined =
+      vscode.workspace.getConfiguration("workingSets")
+        .saveWorkingSetsInProject && vscode.workspace.workspaceFolders
+        ? this.loadWorkingSetsJSONStringifyableObjectFromFile()
+        : context.workspaceState.get(WorkingSetsProvider.WORKING_SETS_KEY)
 
     if (storedWorkingSets) {
       this.workspaceWorkingSets = this.getWorkspaceWorkingSetsFromJSONStringifyableObject(
@@ -449,11 +470,47 @@ export class WorkingSetsProvider
     this.updateWorkspaceState()
   }
 
-  private async updateWorkspaceState() {
-    await this.context.workspaceState.update(
-      WorkingSetsProvider.WORKING_SETS_KEY,
-      this.getJSONStringifyableWorkspaceWorkingSets()
-    )
+  async updateWorkspaceState() {
+    if (
+      vscode.workspace.getConfiguration("workingSets")
+        .saveWorkingSetsInProject &&
+      vscode.workspace.workspaceFolders
+    ) {
+      const fileName = path.join(
+        vscode.workspace.workspaceFolders[0].uri.fsPath,
+        ".vscode",
+        "working_sets.json"
+      )
+      try {
+        if (this.workspaceWorkingSets.size === 0) {
+          if (fs.existsSync(fileName)) {
+            fs.unlinkSync(fileName)
+          }
+        } else {
+          const dirName = path.dirname(fileName)
+          if (!fs.existsSync(dirName)) {
+            fs.mkdirSync(dirName)
+          }
+          fs.writeFileSync(
+            fileName,
+            JSON.stringify(
+              this.getJSONStringifyableWorkspaceWorkingSets(),
+              null,
+              "  "
+            )
+          )
+        }
+      } catch (err) {
+        vscode.window.showErrorMessage(
+          `Could not save working sets to ${fileName}: ${err.message}`
+        )
+      }
+    } else {
+      await this.context.workspaceState.update(
+        WorkingSetsProvider.WORKING_SETS_KEY,
+        this.getJSONStringifyableWorkspaceWorkingSets()
+      )
+    }
     this.refresh()
   }
 
@@ -515,6 +572,10 @@ export class WorkingSetsExplorer {
     this.workingSetsViewer = vscode.window.createTreeView("workingSets", {
       treeDataProvider: workingSetsProvider,
       showCollapseAll: true,
+    })
+
+    vscode.workspace.onDidChangeConfiguration(() => {
+      workingSetsProvider.updateWorkspaceState()
     })
 
     vscode.commands.registerCommand("workingSets.create", () =>
