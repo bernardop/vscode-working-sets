@@ -107,10 +107,11 @@ Move files in a Working Sets (Up or Down)
 
 ## Extension Settings
 
-| Key                             | Default | Description                                         |
-| ------------------------------- | ------- | --------------------------------------------------- |
-| `workingSets.confirmOnDelete`   | `true`  | Show confirmation popup when deleting a Working Set |
-| `workingSets.showNotifications` | `false` | Show confirmation notifications after every action  |
+| Key                                      | Default | Description                                                                                              |
+| ---------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| `workingSets.confirmOnDelete`            | `true`  | Show confirmation popup when deleting a Working Set                                                      |
+| `workingSets.saveWorkingSetsInWorkspace` | `false` | Save (and restore) working sets locally in the current workspace (.vscode directory) instead of globally |
+| `workingSets.showNotifications`          | `false` | Show confirmation notifications after every action                                                       |
 
 ## Known Issues
 

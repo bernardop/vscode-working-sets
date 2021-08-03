@@ -6,9 +6,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [1.4.0] - 08/03/2021
+
 ### Added
 
-- Add option to save working sets in the current workspace (.vscode) folder.
+- Add option to save working sets in the current workspace (.vscode) folder. ([#11](https://github.com/bernardop/vscode-working-sets/pull/11)). Thanks [Maciej Dems (@macdems)](https://github.com/macdems)
 
 ## [1.3.1] - 08/21/2020
 
