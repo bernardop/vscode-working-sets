@@ -33,8 +33,6 @@ You can also use the `Working Sets: Create` command.
 
 Add all open editors to a Working Set.
 
-> NOTE: This feature is a little hack I learned from [another great extension](https://marketplace.visualstudio.com/items?itemName=eamodio.restore-editors). VS Code does not expose (yet) an API to access the open editors, so we need to cycle through them to add them all into a Working Set. The VS Code team is working on adding this API and I will update this extension once they do.
-
 ![Add Open Editors](./assets/add-files.png)
 
 You can also use the `Working Sets: Add All Open Editors to Working Set` command.
@@ -112,7 +110,3 @@ Move files in a Working Sets (Up or Down)
 | `workingSets.confirmOnDelete`            | `true`  | Show confirmation popup when deleting a Working Set                                                      |
 | `workingSets.saveWorkingSetsInWorkspace` | `false` | Save (and restore) working sets locally in the current workspace (.vscode directory) instead of globally |
 | `workingSets.showNotifications`          | `false` | Show confirmation notifications after every action                                                       |
-
-## Known Issues
-
-- Cycling through all the open editors when saving to a Working Set will be fixed once the VS Code team provides an API for accessing the open editors.
