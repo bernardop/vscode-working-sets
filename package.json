@@ -9,7 +9,7 @@
   "version": "1.4.0",
   "publisher": "bernardop",
   "engines": {
-    "vscode": "^1.43.0"
+    "vscode": "^1.67.0"
   },
   "license": "SEE LICENSE IN LICENSE.md",
   "categories": [
@@ -30,7 +30,7 @@
     "onView:explorer",
     "onView:workingSets"
   ],
-  "main": "./dist/extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -262,40 +262,36 @@
     "theme": "dark"
   },
   "scripts": {
-    "vscode:prepublish": "webpack --mode production",
-    "webpack": "webpack --mode development",
-    "webpack-dev": "webpack --mode development --watch",
-    "test-compile": "tsc -p ./",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
     "lint": "eslint src --ext ts",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run test-compile && npm run lint",
-    "test": "node ./out/test/runTest.js",
+    "lint-staged": "lint-staged",
     "package": "vsce package",
+    "prepare": "husky install",
+    "pretest": "npm run test-compile && npm run lint",
+    "prettier": "prettier --write src",
     "publish": "vsce publish",
-    "prettier": "prettier --write src"
+    "test": "node ./out/test/runTest.js",
+    "test-compile": "tsc -p ./",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
-    "@types/glob": "^7.1.3",
-    "@types/mocha": "^8.0.3",
-    "@types/node": "^14.6.0",
-    "@types/vscode": "^1.43.0",
-    "@typescript-eslint/eslint-plugin": "^3.9.1",
-    "@typescript-eslint/parser": "^3.9.1",
-    "eslint": "^7.7.0",
-    "glob": "^7.1.6",
-    "husky": "^4.2.5",
-    "lint-staged": "^10.2.11",
-    "mocha": "^8.1.1",
-    "prettier": "^2.0.5",
-    "ts-loader": "^8.0.2",
-    "typescript": "^4.0.2",
-    "vscode-test": "^1.4.0",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+    "@types/glob": "^8.0.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.11.18",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/parser": "^5.48.1",
+    "esbuild": "^0.16.17",
+    "eslint": "^8.31.0",
+    "glob": "^8.0.3",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.1.0",
+    "mocha": "^10.2.0",
+    "prettier": "^2.8.2",
+    "typescript": "^4.9.4",
+    "vscode-test": "^1.6.1"
   }
 }

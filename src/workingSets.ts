@@ -15,14 +15,15 @@ import {
 } from "./types"
 
 export class WorkingSetsProvider
-  implements vscode.TreeDataProvider<WorkingSetsNode> {
+  implements vscode.TreeDataProvider<WorkingSetsNode>
+{
   private static readonly WORKING_SETS_KEY = "workingSets"
 
   private _onDidChangeTreeData: vscode.EventEmitter<
     WorkingSetsNode | undefined
   > = new vscode.EventEmitter<WorkingSetsNode | undefined>()
-  readonly onDidChangeTreeData: vscode.Event<WorkingSetsNode | undefined> = this
-    ._onDidChangeTreeData.event
+  readonly onDidChangeTreeData: vscode.Event<WorkingSetsNode | undefined> =
+    this._onDidChangeTreeData.event
 
   private workspaceWorkingSets: WorkspaceWorkingSets = new Map()
 
@@ -98,7 +99,7 @@ export class WorkingSetsProvider
         let workingSetItems: WorkingSetItem[]
 
         if (withOpenEditors) {
-          workingSetItems = (await this.getOpenTextEditorsPaths()).map(
+          workingSetItems = this.getOpenTextEditorsPaths().map(
             (filePath) =>
               new WorkingSetItem(vscode.Uri.file(filePath), uniqueId)
           )
@@ -165,11 +166,7 @@ export class WorkingSetsProvider
             this.getWorkingSetIDByName(workingSetNameOrNew)
           )
 
-          workingSet?.setItems(
-            ...(await this.getOpenTextEditorsPaths()).map(
-              (fileName) => fileName
-            )
-          )
+          workingSet?.setItems(...this.getOpenTextEditorsPaths())
           this.updateWorkspaceState()
         }
       }
@@ -270,7 +267,7 @@ export class WorkingSetsProvider
             }
           )
 
-          if (filePath) {
+          if (filePath?.detail) {
             workingSet.removeItem(filePath.detail)
             this.updateWorkspaceState()
           }
@@ -367,8 +364,9 @@ export class WorkingSetsProvider
     try {
       return JSON.parse(readFileSync(fileName).toString())
     } catch (err) {
+      const errorMessage = err instanceof Error ? `: ${err.message}` : ""
       vscode.window.showErrorMessage(
-        `Could not load working sets from ${fileName}: ${err.message}`
+        `Could not load working sets from ${fileName}${errorMessage}`
       )
       return
     }
@@ -377,10 +375,10 @@ export class WorkingSetsProvider
   private loadWorkingSets(
     context: vscode.ExtensionContext
   ): StringifyableWorkspaceWorkingSets | undefined {
-    const saveWorkingSetsInWorkspace:
-      | boolean
-      | undefined = vscode.workspace.getConfiguration("workingSets")
-      .saveWorkingSetsInWorkspace
+    const saveWorkingSetsInWorkspace: boolean | undefined =
+      vscode.workspace.getConfiguration(
+        "workingSets"
+      ).saveWorkingSetsInWorkspace
     const hasWorkspaceFolder =
       vscode.workspace.workspaceFolders &&
       vscode.workspace.workspaceFolders.length > 0
@@ -390,9 +388,10 @@ export class WorkingSetsProvider
         : context.workspaceState.get(WorkingSetsProvider.WORKING_SETS_KEY)
 
     if (storedWorkingSets) {
-      this.workspaceWorkingSets = this.getWorkspaceWorkingSetsFromJSONStringifyableObject(
-        storedWorkingSets
-      )
+      this.workspaceWorkingSets =
+        this.getWorkspaceWorkingSetsFromJSONStringifyableObject(
+          storedWorkingSets
+        )
       this.refresh()
     }
 
@@ -516,8 +515,9 @@ export class WorkingSetsProvider
           )
         }
       } catch (err) {
+        const errorMessage = err instanceof Error ? `: ${err.message}` : ""
         vscode.window.showErrorMessage(
-          `Could not save working sets to ${fileName}: ${err.message}`
+          `Could not save working sets to ${fileName}${errorMessage}`
         )
       }
     } else {
@@ -537,28 +537,25 @@ export class WorkingSetsProvider
     return workingSet.getItems().map(({ label, resourceUri: { fsPath } }) => ({
       label: label || basename(fsPath),
       detail: fsPath,
-    }))
+    })) as vscode.QuickPickItem[]
   }
 
-  private async getOpenTextEditorsPaths(): Promise<string[]> {
-    const openEditors: string[] = []
-    let activeEditor = vscode.window.activeTextEditor
+  private getOpenTextEditorsPaths(): string[] {
+    const openTextEditors = vscode.window.tabGroups.all.reduce<string[]>(
+      (filePaths, currentTabGroup) => {
+        const tabGroupFilePaths = currentTabGroup.tabs
+          .filter((tab) => tab.input instanceof vscode.TabInputText)
+          .map((tab) => {
+            const tabInput = tab.input as vscode.TabInputText
+            return tabInput.uri.fsPath
+          })
 
-    while (activeEditor?.document) {
-      openEditors.push(activeEditor?.document.fileName || "")
-      await vscode.commands.executeCommand("workbench.action.nextEditor")
-      activeEditor = vscode.window.activeTextEditor
+        return [...filePaths, ...tabGroupFilePaths]
+      },
+      []
+    )
 
-      if (
-        openEditors.some(
-          (filePath) => filePath === activeEditor?.document.fileName
-        )
-      ) {
-        break
-      }
-    }
-
-    return openEditors
+    return openTextEditors
   }
 
   private async openWorkingSetItems(workingSet: WorkingSet) {
