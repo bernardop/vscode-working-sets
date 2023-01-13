@@ -9,7 +9,7 @@
   "version": "1.4.0",
   "publisher": "bernardop",
   "engines": {
-    "vscode": "^1.43.0"
+    "vscode": "^1.67.0"
   },
   "license": "SEE LICENSE IN LICENSE.md",
   "categories": [
@@ -30,7 +30,7 @@
     "onView:explorer",
     "onView:workingSets"
   ],
-  "main": "./dist/extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -262,17 +262,20 @@
     "theme": "dark"
   },
   "scripts": {
-    "vscode:prepublish": "webpack --mode production",
-    "webpack": "webpack --mode development",
-    "webpack-dev": "webpack --mode development --watch",
-    "test-compile": "tsc -p ./",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
     "lint": "eslint src --ext ts",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run test-compile && npm run lint",
-    "test": "node ./out/test/runTest.js",
+    "lint-staged": "lint-staged",
     "package": "vsce package",
+    "prepare": "husky install",
+    "pretest": "npm run test-compile && npm run lint",
+    "prettier": "prettier --write src",
     "publish": "vsce publish",
-    "prettier": "prettier --write src"
+    "test": "node ./out/test/runTest.js",
+    "test-compile": "tsc -p ./",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
     "@types/glob": "^8.0.0",

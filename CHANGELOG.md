@@ -6,6 +6,15 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+### Changed
+
+- Updated dependencies to latest versions
+- Changed build from `webpack` to `esbuild`
+
+### Fixed
+
+- [BREAKING] Saving all open editors to a working set no longer cycles through them thanks to the new [Tabs API](https://code.visualstudio.com/api/references/vscode-api#Tab). This extension now requires Visual Studio Code v1.67.0.
+
 ## [1.4.0] - 08/03/2021
 
 ### Added
